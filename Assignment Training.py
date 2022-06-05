@@ -59,18 +59,18 @@ torch.manual_seed(0)
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # 1 input image channel, 6 output channels, 5x5 square convolution
-        self.conv1 = nn.Linear(5, 6)
-        self.conv2 = nn.Linear(6, 6)
+        # 1 input image channel, 6 output channels, 5x1 square convolution
+        # self.conv1 = nn.Conv2d(1, 6, (5,))
+        # self.conv2 = nn.Conv2d(6, 1, (5,))
         # an affine operation: y = Wx + b
-        self.fc1 = nn.Linear(5, 120)
+        self.fc1 = nn.Linear(1024, 120)
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
         self.learning_rate = 0.01
 
     def forward(self, x):
         x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
-        #x = F.relu(self.fc1(x))
+        x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
         x = self.fc3(x)
         return x
