@@ -3,9 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-import torchvision
 import torchvision.transforms as transforms
-import sys
 from os import path
 
 inputFile = path.dirname(__file__)
@@ -34,22 +32,6 @@ class fileReader():
 
     def toStringInputs(self):
         return self.inputArr, self.labelArr
-        
-#----------------------------------------------------------------------------------------------------------
-#TODO: ins and outs
-#sys.stdout.write(str(num))
-def main():
-    #load stdin
-    np.loadtxt(sys.stdin)
-    for line in sys.stdin:
-        if (line == ""):
-            break
-
-        # Write stdout
-        output = line
-        sys.stdout.write(str(output))
-#main()
-#----------------------------------------------------------------------------------------------------------
 
 inputReader = fileReader()
 inputReader.readFromFile()
@@ -61,61 +43,71 @@ torch.manual_seed(0)
 
 transform = transforms.Compose(
     [transforms.ToTensor(),
-     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+     transforms.Normalize((0.5,), (0.5,))])
 
-batch_size = labels.size
+batch_size = 2000
 classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # an affine operation: y = Wx + b
         self.fc1 = nn.Linear(2352, 120)
         self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 1)
-        #self.fc4 = nn.Linear(1, 1)
-        self.learning_rate = 0.01
+        self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
         x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
         x = F.relu(self.fc1(x))
         x = F.relu(self.fc2(x))
-        #x = F.relu(self.fc3(x))
         x = self.fc3(x)
         return x
 
 net = Net()
 
-#criterion = nn.CrossEntropyLoss()
-m = nn.LogSoftmax()
-criterion = nn.NLLLoss()
-optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
-
-output = net(inputs)
-output = output[:, -1]
-
-
-print("First output", m(output))
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(net.parameters(), lr=0.001) #, momentum=0.9
+epoch=2
 print("Training")
 
-for epoch in range(1):  # loop over the dataset multiple times
-    # zero the parameter gradients
-    optimizer.zero_grad()
+for epoch in range(epoch):  # loop over the dataset multiple times
+    net.train()
+    for i in range(batch_size):
+        epochInput = inputs[i]
+        epochLabel = labels[i]
 
-    # forward + backward + optimize
-    outputs = net(inputs)
-    outputs = outputs[:, -1]
-    loss = criterion(m(output), labels)
-    loss.backward()
-    optimizer.step()
+        # zero the parameter gradients
+        optimizer.zero_grad()
 
-    # print statistics
-    print(loss.item())
+        # forward + backward + optimize
+        epochOutput = net(epochInput)
+        epochOutput = epochOutput[-1, :]
+        loss = criterion(epochOutput, epochLabel)
+        loss.backward()
+        optimizer.step()
 
 print('Finished Training')
-print(labels)
+
 output = net(inputs)
-output = output[:, -1]
-print("Final output", m(output))
-loss = criterion(m(output), labels)
-print("Final loss", loss.item())
+newOutput = torch.tensor(np.empty((2000), dtype=np.int8))
+for count, i in enumerate(output):
+    argmax = torch.argmax(i)
+    newOutput[count] = argmax
+    output[count] = output[argmax]
+
+print("Final output", newOutput, newOutput.size())
+
+
+#Testing accuracy
+correct = 0
+
+for i in range(batch_size):
+    if(newOutput[i]==labels[i]):
+        correct += 1
+
+print("model accuracy:", round(correct/batch_size, 3))
+
+
+#save model 
+PATH = "state_dict_model.pt"
+torch.save(net.state_dict(), PATH)
+print("saved")
