@@ -3,6 +3,8 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
+import torchvision
+import torchvision.transforms as transforms
 import sys
 from os import path
 
@@ -31,8 +33,8 @@ class fileReader():
             count+=1
 
     def toStringInputs(self):
-        print(self.inputArr)
-        print(self.labelArr)
+        return self.inputArr, self.labelArr
+        
 
 #----------------------------------------------------------------------------------------------------------
 #TODO: ins and outs
@@ -50,20 +52,26 @@ def main():
 #main()
 #----------------------------------------------------------------------------------------------------------
 
-#inputReader = fileReader()
-#inputReader.readFromFile()
-#inputReader.toStringInputs()
+inputReader = fileReader()
+inputReader.readFromFile()
+inputs, labels = inputReader.toStringInputs()
 
 torch.manual_seed(0)
+
+transform = transforms.Compose(
+    [transforms.ToTensor(),
+     transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))])
+
+batch_size = labels.size
+classes = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9')
 
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        # 1 input image channel, 6 output channels, 5x1 square convolution
-        # self.conv1 = nn.Conv2d(1, 6, (5,))
-        # self.conv2 = nn.Conv2d(6, 1, (5,))
         # an affine operation: y = Wx + b
-        self.fc1 = nn.Linear(1024, 120)
+        self.fc1 = torch.nn.Sequential(nn.Linear(1024, 120))
+        with torch.no_grad():
+            self.fc1[0].weight[0, 0] = 2.
         self.fc2 = nn.Linear(120, 84)
         self.fc3 = nn.Linear(84, 10)
         self.learning_rate = 0.01
@@ -76,24 +84,30 @@ class Net(nn.Module):
         return x
 
 net = Net()
-params = list(net.parameters()) #10 params
 
-input = torch.randn(1, 1, 32, 32)
-output = net(input)
-print("first output", output)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-target = torch.randn(10)  # a dummy target, for example
-target = target.view(1, -1)  # make it the same shape as output
-criterion = nn.MSELoss()
-optimizer = optim.SGD(net.parameters(), lr=0.01)
+output = net(inputs)
+print("First output", output)
+print("Training")
 
-for i in range(10):
-     # in your training loop:
-    optimizer.zero_grad()   # zero the gradient buffers
-    output = net(input)
-    loss = criterion(output, target)
+for epoch in range(2):  # loop over the dataset multiple times
+    # zero the parameter gradients
+    optimizer.zero_grad()
+
+    # forward + backward + optimize
+    outputs = net(inputs)
+    loss = criterion(outputs, labels)
     loss.backward()
-    optimizer.step()    # Does the update
+    optimizer.step()
 
-print("final output", output)
-print("final loss", loss.item())
+    # print statistics
+    print(loss.item())
+
+print('Finished Training')
+
+output = net(inputs)
+print("Final output", output)
+loss = criterion(output, labels)
+print("Final loss", loss.item())
