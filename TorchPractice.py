@@ -37,6 +37,7 @@ params = list(net.parameters()) #10 params
 #         print(params[i])  # conv1's .weight
 
 input = torch.randn(1, 1, 32, 32)
+print(input[0].dtype)
 
 output = net(input)
 print("first output", output)
