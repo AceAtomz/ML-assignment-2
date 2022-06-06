@@ -20,14 +20,17 @@ class Net(nn.Module):
         x = self.fc3(x)
         return x
 
-model = Net()
-model.load_state_dict(torch.load(PATH))
-model.eval()
+def main():
+    model = Net()
+    model.load_state_dict(torch.load(PATH))
+    model.eval()
+    test_data = np.loadtxt(sys.stdin)
 
-test_data = np.loadtxt(sys.stdin)
+    for data_point in test_data:
+        input = torch.tensor(np.array([data_point], dtype=np.float32))
+        output = model(input)
+        prediction = torch.argmax(output)
+        sys.stdout.write(str(prediction.item()))
 
-for data_point in test_data:
-    input = torch.tensor(np.array([data_point], dtype=np.float32))
-    output = model(input)
-    prediction = torch.argmax(output)
-    sys.stdout.write(str(prediction.item()))
+if (__name__ == '__main__'):
+    main()
