@@ -21,20 +21,13 @@ class Net(nn.Module):
         return x
 
 model = Net()
-
 model.load_state_dict(torch.load(PATH))
 model.eval()
 
-def main():
-    #load stdin
-    test_data = np.loadtxt(sys.stdin)
+test_data = np.loadtxt(sys.stdin)
 
-    for data_point in test_data:
-        input = torch.tensor(np.array([data_point], dtype=np.float32))
-        output = model(input)
-        prediction = torch.argmax(output)
-
-        # Write stdout
-        sys.stdout.write(str(prediction.item()))
-        
-main()
+for data_point in test_data:
+    input = torch.tensor(np.array([data_point], dtype=np.float32))
+    output = model(input)
+    prediction = torch.argmax(output)
+    sys.stdout.write(str(prediction.item()))
