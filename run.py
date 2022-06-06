@@ -26,8 +26,8 @@ model = Net()
 model.load_state_dict(torch.load(PATH))
 model.eval()
 
-inputFile = path.dirname(__file__)
-inputFile = open(path.join(inputFile, "./assignment_data/inputs.txt"),"r", encoding="utf-8")
+#inputFile = path.dirname(__file__)
+#inputFile = open(path.join(inputFile, "./assignment_data/inputs.txt"),"r", encoding="utf-8")
 
 def main():
     #load stdin
