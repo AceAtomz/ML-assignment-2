@@ -6,6 +6,7 @@ import torch.optim as optim
 import torchvision.transforms as transforms
 from os import path
 
+
 inputFile = path.dirname(__file__)
 labelFile = path.dirname(__file__)
 
@@ -41,10 +42,6 @@ labels = torch.from_numpy(nplabels)
 
 torch.manual_seed(0)
 
-transform = transforms.Compose(
-    [transforms.ToTensor(),
-     transforms.Normalize((0.5,), (0.5,))])
-
 batch_size = 2000
 classes = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9)
 
@@ -58,15 +55,15 @@ class Net(nn.Module):
     def forward(self, x):
         x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
         x = torch.sigmoid(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
+        x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
 net = Net()
 
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(net.parameters(), lr=0.001) #, momentum=0.9
-epochs=2
+optimizer = optim.Adam(net.parameters(), lr=0.001)
+epochs = 4
 print("Training")
 
 for epoch in range(epochs):  # loop over the dataset multiple times

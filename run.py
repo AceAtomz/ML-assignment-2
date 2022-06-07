@@ -14,7 +14,7 @@ class Net(nn.Module):
     def forward(self, x):
         x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
         x = torch.sigmoid(self.fc1(x))
-        x = torch.sigmoid(self.fc2(x))
+        x = torch.relu(self.fc2(x))
         x = self.fc3(x)
         return x
 
