@@ -1,18 +1,20 @@
 import torch
+import torch.nn as nn
+import torch.nn.functional as F
 import numpy as np
 import sys
 
-class Net(torch.nn.Module):
+class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
-        self.fc1 = torch.nn.Linear(2352, 120)
-        self.fc2 = torch.nn.Linear(120, 84)
-        self.fc3 = torch.nn.Linear(84, 10)
+        self.fc1 = nn.Linear(2352, 120)
+        self.fc2 = nn.Linear(120, 84)
+        self.fc3 = nn.Linear(84, 10)
 
     def forward(self, x):
         x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
-        x = torch.nn.functional.relu(self.fc1(x))
-        x = torch.nn.functional.relu(self.fc2(x))
+        x = torch.sigmoid(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
         x = self.fc3(x)
         return x
 
